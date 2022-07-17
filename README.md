@@ -13,7 +13,7 @@ go get github.com/mgenware/j9
 
 ## Examples
 
-Checking if a command is installed and performing an install command if necessary. (assuming macOS with homebrew installed)
+Check if `tree` command is available and install it if necessary. (Assuming on macOS with homebrew installed):
 
 ```go
 package main
@@ -27,6 +27,8 @@ import (
 )
 
 func main() {
+	// Local node runs on the local system.
+	// `ConsoleLogger` prints logs to the current console.
 	t := j9.NewTunnel(j9.NewLocalNode(), loggers.NewConsoleLogger())
 
 	_, err := exec.LookPath("tree")
@@ -39,7 +41,7 @@ func main() {
 }
 ```
 
-Example output when `tree` is not installed:
+Sample output when `tree` is not installed:
 
 ```
 ❯ go run main.go
@@ -56,7 +58,7 @@ tree is installed
 0 directories, 1 file
 ```
 
-### SSH Example
+### SSH with a private key
 
 ```go
 package main
