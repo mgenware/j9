@@ -6,7 +6,11 @@ type Tunnel struct {
 }
 
 func NewTunnel(node Node, logger Logger) *Tunnel {
-	return &Tunnel{node: node, logger: logger}
+	lg := logger
+	if lg == nil {
+		lg = &emptyLogger{}
+	}
+	return &Tunnel{node: node, logger: lg}
 }
 
 func (w *Tunnel) Node() Node {
