@@ -1,7 +1,7 @@
 package j9
 
 import (
-	"io/ioutil"
+	"os"
 
 	"github.com/mgenware/j9/lib"
 	"golang.org/x/crypto/ssh"
@@ -17,7 +17,7 @@ type SSHConfig struct {
 
 // Creates a new ssh.AuthMethod with the given key file.
 func NewKeyBasedAuth(keyFile string) ([]ssh.AuthMethod, error) {
-	keyBytes, err := ioutil.ReadFile(lib.FormatPath(keyFile, true))
+	keyBytes, err := os.ReadFile(lib.FormatPath(keyFile, true))
 	if err != nil {
 		return nil, err
 	}
