@@ -95,3 +95,23 @@ data
 ## Windows Support
 
 Use WSL 2.
+
+## `Run` vs `RunSync`
+
+First, they have different function signatures:
+
+```go
+// Run runs the given command, returns an error if the command fails.
+Run(name string, arg ...string) error
+
+// RunSync runs the given command, returns the output and an error if the command fails.
+RunSync(cmd string) ([]byte, error)
+```
+
+Use them based on your use cases.
+
+|                                                       | Run | RunSync |
+| ----------------------------------------------------- | --- | ------- |
+| Return stdout and stderr as a string                  | ❌  | ✅      |
+| Live process output (good for long-running processes) | ✅  | ❌      |
+| Supported in SSHNode                                  | ❌  | ✅      |
