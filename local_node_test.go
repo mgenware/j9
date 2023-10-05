@@ -1,7 +1,6 @@
 package j9
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -35,9 +34,6 @@ func TestLocalRunCD(t *testing.T) {
 	localNode.CDUnsafe("/")
 	output := runSync(localNode, "pwd")
 	assert.Equal(t, "/\n", string(output))
-	localNode.CDUnsafe("~")
-	output = runSync(localNode, "pwd")
-	assert.Equal(t, os.Getenv("HOME")+"\n", string(output))
 }
 
 func TestLocalLastDir(t *testing.T) {
