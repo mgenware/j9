@@ -31,13 +31,19 @@ func TestLocalRunSyncWithError(t *testing.T) {
 }
 
 func TestLocalRunCD(t *testing.T) {
-	localNode.CDUnsafe("/")
+	err := localNode.CDUnsafe("/")
+	if err != nil {
+		panic(err)
+	}
 	output := runSync(localNode, "pwd")
 	assert.Equal(t, "/\n", string(output))
 }
 
 func TestLocalLastDir(t *testing.T) {
-	localNode.CDUnsafe("/")
+	err := localNode.CDUnsafe("/")
+	if err != nil {
+		panic(err)
+	}
 	output := runSync(localNode, "pwd")
 	assert.Equal(t, "/\n", string(output))
 	// Double check if last dir is kept on subsequent commands
