@@ -3,7 +3,7 @@ package j9
 import (
 	"os"
 
-	"github.com/mgenware/j9/lib"
+	"github.com/mgenware/j9/v2/lib"
 	"golang.org/x/crypto/ssh"
 )
 

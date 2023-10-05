@@ -1,6 +1,6 @@
 package main
 
-import "github.com/mgenware/j9"
+import "github.com/mgenware/j9/v2"
 
 func main() {
 	ln := j9.NewLocalNode()
