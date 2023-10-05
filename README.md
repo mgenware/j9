@@ -8,7 +8,7 @@ Shell scripting in Go.
 ## Installation
 
 ```sh
-go get github.com/mgenware/j9
+go get github.com/mgenware/j9/v2
 ```
 
 ## Examples
