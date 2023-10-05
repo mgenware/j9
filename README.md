@@ -72,10 +72,10 @@ func main() {
 	config := &j9.SSHConfig{
 		Host: "1.2.3.4",
 		User: "root",
-		Auth: j9.NewKeyBasedAuth("~/key.pem"),
+		Auth: j9.MustCreateKeyBasedAuth("~/key.pem"),
 	}
 
-	t := j9.NewTunnel(j9.NewSSHNode(config), loggers.NewConsoleLogger())
+	t := j9.NewTunnel(j9.MustCreateSSHNode(config), loggers.NewConsoleLogger())
 	t.Run("pwd")
 	t.Run("ls")
 }

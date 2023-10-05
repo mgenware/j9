@@ -6,6 +6,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+// SSHNode is a node that runs commands on a remote SSH server.
 type SSHNode struct {
 	dir       *dirManager
 	config    *SSHConfig
@@ -15,7 +16,8 @@ type SSHNode struct {
 	Logger Logger
 }
 
-func SafeNewSSHNode(config *SSHConfig) (*SSHNode, error) {
+// Creates a new SSH node with the given configuration.
+func NewSSHNode(config *SSHConfig) (*SSHNode, error) {
 	if config.Host == "" {
 		return nil, fmt.Errorf("config.Host cannot be empty")
 	}
@@ -41,8 +43,9 @@ func SafeNewSSHNode(config *SSHConfig) (*SSHNode, error) {
 	}, nil
 }
 
-func NewSSHNode(config *SSHConfig) *SSHNode {
-	node, err := SafeNewSSHNode(config)
+// Creates a new SSH node with the given configuration, panics if there is an error.
+func MustCreateSSHNode(config *SSHConfig) *SSHNode {
+	node, err := NewSSHNode(config)
 	if err != nil {
 		panic(err)
 	}

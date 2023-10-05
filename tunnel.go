@@ -1,10 +1,12 @@
 package j9
 
+// Tunnel is a wrapper for a node that provides a logger.
 type Tunnel struct {
 	node   Node
 	logger Logger
 }
 
+// NewTunnel creates a new tunnel with the given node and logger.
 func NewTunnel(node Node, logger Logger) *Tunnel {
 	lg := logger
 	if lg == nil {
@@ -13,14 +15,17 @@ func NewTunnel(node Node, logger Logger) *Tunnel {
 	return &Tunnel{node: node, logger: lg}
 }
 
+// Node returns the node.
 func (w *Tunnel) Node() Node {
 	return w.node
 }
 
+// Logger returns the logger.
 func (w *Tunnel) Logger() Logger {
 	return w.logger
 }
 
+// Runs the given command on the node and panics if there is an error.
 func (w *Tunnel) Run(cmd string) []byte {
 	output, err := w.run(false, cmd)
 	if err != nil {
@@ -29,12 +34,13 @@ func (w *Tunnel) Run(cmd string) []byte {
 	return output
 }
 
+// Runs the given command on the node and returns the output and error.
 func (w *Tunnel) RunOrError(cmd string) ([]byte, error) {
 	return w.run(true, cmd)
 }
 
-func (w *Tunnel) run(ignore bool, cmd string) ([]byte, error) {
-	if ignore {
+func (w *Tunnel) run(ignoreError bool, cmd string) ([]byte, error) {
+	if ignoreError {
 		w.logger.Log(LogLevelInfo, "🚙 "+cmd)
 	} else {
 		w.logger.Log(LogLevelInfo, "🚗 "+cmd)
@@ -45,7 +51,7 @@ func (w *Tunnel) run(ignore bool, cmd string) ([]byte, error) {
 			w.logger.Log(LogLevelError, string(output))
 		}
 		w.logger.Log(LogLevelError, err.Error())
-		if !ignore {
+		if !ignoreError {
 			panic(err)
 		}
 	} else {
