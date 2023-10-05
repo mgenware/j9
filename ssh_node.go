@@ -1,17 +1,19 @@
 package j9
 
 import (
+	"errors"
 	"fmt"
+	"os"
 
 	"golang.org/x/crypto/ssh"
 )
 
 // SSHNode is a node that runs commands on a remote SSH server.
 type SSHNode struct {
-	dir       *dirManager
 	config    *SSHConfig
 	sshConfig *ssh.ClientConfig
 	client    *ssh.Client
+	lastDir   string
 
 	Logger Logger
 }
@@ -39,7 +41,6 @@ func NewSSHNode(config *SSHConfig) (*SSHNode, error) {
 	return &SSHNode{
 		config:    config,
 		sshConfig: sshConfig,
-		dir:       &dirManager{},
 	}, nil
 }
 
@@ -52,12 +53,26 @@ func MustCreateSSHNode(config *SSHConfig) *SSHNode {
 	return node
 }
 
-func (node *SSHNode) RunOrError(cmd string) ([]byte, error) {
+func (node *SSHNode) RunUnsafe(name string, arg ...string) error {
+	return errors.New("Run is not supported in SSHNode")
+}
+
+func (node *SSHNode) RunSyncUnsafe(cmd string) ([]byte, error) {
+	return node.runCore(func(session *ssh.Session) ([]byte, error) {
+		session.Stderr = os.Stderr
+		session.Stdout = os.Stdout
+		session.Stdin = os.Stdin
+		err := session.Start(cmd)
+		return nil, err
+	})
+}
+
+func (node *SSHNode) runCore(sessionCb func(*ssh.Session) ([]byte, error)) ([]byte, error) {
 	session, err := node.prepareSession()
 	if err != nil {
 		return nil, err
 	}
-	output, err := node.runCore(session, cmd)
+	output, err := sessionCb(session)
 	if err != nil {
 		if len(output) > 0 {
 			node.log(LogLevelWarning, string(output))
@@ -78,7 +93,7 @@ func (node *SSHNode) RunOrError(cmd string) ([]byte, error) {
 			return nil, err
 		}
 
-		output, err = node.runCore(session, cmd)
+		output, err = sessionCb(session)
 		if err != nil {
 			return output, err
 		}
@@ -86,16 +101,15 @@ func (node *SSHNode) RunOrError(cmd string) ([]byte, error) {
 	return output, nil
 }
 
-func (node *SSHNode) runCore(session *ssh.Session, cmd string) ([]byte, error) {
-	node.dir.NextWD(cmd, false)
-
-	lastDir := node.dir.LastDir()
-	if lastDir != "" {
+func (node *SSHNode) CDUnsafe(dir string) error {
+	node.lastDir = dir
+	if dir != "" {
 		// TODO: better handling of escaping path
-		cmd = "cd '" + lastDir + "' && " + cmd
+		cmd := "cd '" + dir + "'"
+		_, err := node.RunSyncUnsafe(cmd)
+		return err
 	}
-
-	return session.CombinedOutput(cmd)
+	return nil
 }
 
 func (node *SSHNode) prepareSession() (*ssh.Session, error) {

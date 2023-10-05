@@ -25,39 +25,75 @@ func (w *Tunnel) Logger() Logger {
 	return w.logger
 }
 
-// Runs the given command on the node and panics if there is an error.
-func (w *Tunnel) Run(cmd string) []byte {
-	output, err := w.run(false, cmd)
+// Calls node.RunUnsafe.
+func (w *Tunnel) RunUnsafe(name string, arg ...string) error {
+	cmdString := w.getCmdString(name, arg...)
+	_, err := w.runCore(cmdString, func() ([]byte, error) {
+		err := w.node.RunUnsafe(name, arg...)
+		return nil, err
+	})
+	return err
+}
+
+// Calls node.RunSyncUnsafe.
+func (w *Tunnel) RunSyncUnsafe(cmd string) ([]byte, error) {
+	return w.runCore(cmd, func() ([]byte, error) {
+		return w.node.RunSyncUnsafe(cmd)
+	})
+}
+
+// Calls node.CDUnsafe.
+func (w *Tunnel) CDUnsafe(dir string) error {
+	return w.node.CDUnsafe(dir)
+}
+
+// Calls CDUnsafe and panics if there is an error.
+func (w *Tunnel) CD(dir string) {
+	err := w.CDUnsafe(dir)
+	if err != nil {
+		panic(err)
+	}
+}
+
+// Calls RunUnsafe and panics if there is an error.
+func (w *Tunnel) Run(name string, arg ...string) {
+	err := w.RunUnsafe(name, arg...)
+	if err != nil {
+		panic(err)
+	}
+}
+
+// Calls RunSyncUnsafe and panics if there is an error.
+func (w *Tunnel) RunSync(cmd string) []byte {
+	output, err := w.RunSyncUnsafe(cmd)
 	if err != nil {
 		panic(err)
 	}
 	return output
 }
 
-// Runs the given command on the node and returns the output and error.
-func (w *Tunnel) RunOrError(cmd string) ([]byte, error) {
-	return w.run(true, cmd)
-}
-
-func (w *Tunnel) run(ignoreError bool, cmd string) ([]byte, error) {
-	if ignoreError {
-		w.logger.Log(LogLevelInfo, "🚙 "+cmd)
-	} else {
-		w.logger.Log(LogLevelInfo, "🚗 "+cmd)
-	}
-	output, err := w.node.RunOrError(cmd)
+func (w *Tunnel) runCore(cmdText string, runCb func() ([]byte, error)) ([]byte, error) {
+	w.logger.Log(LogLevelInfo, cmdText)
+	var output []byte
+	var err error
+	output, err = runCb()
 	if err != nil {
 		if len(output) > 0 {
 			w.logger.Log(LogLevelError, string(output))
 		}
 		w.logger.Log(LogLevelError, err.Error())
-		if !ignoreError {
-			panic(err)
-		}
 	} else {
 		if len(output) > 0 {
 			w.logger.Log(LogLevelVerbose, string(output))
 		}
 	}
 	return output, err
+}
+
+func (w *Tunnel) getCmdString(name string, arg ...string) string {
+	cmd := name
+	for _, a := range arg {
+		cmd += " " + a
+	}
+	return cmd
 }

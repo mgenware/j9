@@ -7,37 +7,33 @@ import (
 
 // LocalNode is used for running commands locally.
 type LocalNode struct {
-	dir *dirManager
+	lastDir string
 }
 
 func NewLocalNode() *LocalNode {
-	return &LocalNode{
-		dir: &dirManager{},
-	}
+	return &LocalNode{}
 }
 
-func (node *LocalNode) RunOrError(cmd string) ([]byte, error) {
-	// Get the next working dir to be set
-	wd := node.dir.NextWD(cmd, true)
-	if wd != "" {
-		// Unlike SSH session, once we set the working dir to a value, we don't need to set it on subsequent commands.
-		err := os.Chdir(wd)
-		if err != nil {
-			return []byte("Cannot change working directory to: \"" + wd + "\""), err
-		}
-
-		// Running bash -c with a cd commands with relative paths cause issues, so we stop here
-		return nil, nil
-	}
-
-	output, err := node.execCore("bash", "-c", cmd)
+func (node *LocalNode) RunSyncUnsafe(cmd string) ([]byte, error) {
+	c := exec.Command("bash", "-c", cmd)
+	c.Dir = node.lastDir
+	output, err := c.CombinedOutput()
 	if err != nil {
 		return output, err
 	}
 	return output, nil
 }
 
-func (node *LocalNode) execCore(name string, arg ...string) ([]byte, error) {
-	cmd := exec.Command(name, arg...)
-	return cmd.CombinedOutput()
+func (node *LocalNode) RunUnsafe(name string, arg ...string) error {
+	c := exec.Command(name, arg...)
+	c.Dir = node.lastDir
+	c.Stdin = os.Stdin
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+	return c.Run()
+}
+
+func (node *LocalNode) CDUnsafe(dir string) error {
+	node.lastDir = dir
+	return nil
 }

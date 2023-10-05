@@ -1,10 +1,9 @@
-package loggers
+package j9
 
 import (
 	"fmt"
 
 	"github.com/fatih/color"
-	"github.com/mgenware/j9"
 )
 
 type ConsoleLogger struct {
@@ -15,14 +14,14 @@ func NewConsoleLogger() *ConsoleLogger {
 }
 
 func (c *ConsoleLogger) Log(level int, message string) {
-	if level == j9.LogLevelVerbose {
+	if level == LogLevelVerbose {
 		fmt.Println(message)
 	} else {
 		var console func(format string, a ...interface{})
 		switch level {
-		case j9.LogLevelError:
+		case LogLevelError:
 			console = color.Red
-		case j9.LogLevelWarning:
+		case LogLevelWarning:
 			console = color.Yellow
 		default:
 			console = color.Cyan
