@@ -31,6 +31,10 @@ func (w *Tunnel) Logger() Logger {
 	return w.logger
 }
 
+func (w *Tunnel) LastDir() string {
+	return w.lastDir
+}
+
 // Calls `node.RunCmd`.
 func (w *Tunnel) RunRaw(name string, arg ...string) error {
 	cmdString := w.getCmdString(name, arg...)
