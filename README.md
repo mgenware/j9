@@ -74,9 +74,9 @@ func main() {
 		Auth: j9.MustCreateKeyBasedAuth("~/key.pem"),
 	}
 
-	t := j9.NewTunnel(j9.MustCreateSSHNode(config), loggers.NewConsoleLogger())
-	t.Run("pwd")
-	t.Run("ls")
+	t := j9.NewTunnel(j9.MustCreateSSHNode(config), j9.NewConsoleLogger())
+	t.RunSync("pwd")
+	t.RunSync("ls")
 }
 ```
 
