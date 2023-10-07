@@ -7,16 +7,15 @@ import (
 
 // LocalNode is used for running commands locally.
 type LocalNode struct {
-	lastDir string
 }
 
 func NewLocalNode() *LocalNode {
 	return &LocalNode{}
 }
 
-func (node *LocalNode) RunSyncUnsafe(cmd string) ([]byte, error) {
+func (node *LocalNode) RunCmdSync(wd string, cmd string) ([]byte, error) {
 	c := exec.Command("bash", "-c", cmd)
-	c.Dir = node.lastDir
+	c.Dir = wd
 	output, err := c.CombinedOutput()
 	if err != nil {
 		return output, err
@@ -24,16 +23,11 @@ func (node *LocalNode) RunSyncUnsafe(cmd string) ([]byte, error) {
 	return output, nil
 }
 
-func (node *LocalNode) RunUnsafe(name string, arg ...string) error {
+func (node *LocalNode) RunCmd(wd string, name string, arg ...string) error {
 	c := exec.Command(name, arg...)
-	c.Dir = node.lastDir
+	c.Dir = wd
 	c.Stdin = os.Stdin
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	return c.Run()
-}
-
-func (node *LocalNode) CDUnsafe(dir string) error {
-	node.lastDir = dir
-	return nil
 }

@@ -1,9 +1,15 @@
 package j9
 
+import (
+	"path/filepath"
+)
+
 // Tunnel is a wrapper for a node that provides a logger.
 type Tunnel struct {
 	node   Node
 	logger Logger
+
+	lastDir string
 }
 
 // NewTunnel creates a new tunnel with the given node and logger.
@@ -25,47 +31,52 @@ func (w *Tunnel) Logger() Logger {
 	return w.logger
 }
 
-// Calls node.RunUnsafe.
-func (w *Tunnel) RunUnsafe(name string, arg ...string) error {
+// Calls `node.RunCmd`.
+func (w *Tunnel) RunRaw(name string, arg ...string) error {
 	cmdString := w.getCmdString(name, arg...)
 	_, err := w.runCore(cmdString, func() ([]byte, error) {
-		err := w.node.RunUnsafe(name, arg...)
+		err := w.node.RunCmd(w.lastDir, name, arg...)
 		return nil, err
 	})
 	return err
 }
 
-// Calls node.RunSyncUnsafe.
-func (w *Tunnel) RunSyncUnsafe(cmd string) ([]byte, error) {
+// Calls `node.RunCmdSync`.
+func (w *Tunnel) RunSyncRaw(cmd string) ([]byte, error) {
 	return w.runCore(cmd, func() ([]byte, error) {
-		return w.node.RunSyncUnsafe(cmd)
+		return w.node.RunCmdSync(w.lastDir, cmd)
 	})
 }
 
-// Calls node.CDUnsafe.
-func (w *Tunnel) CDUnsafe(dir string) error {
-	return w.node.CDUnsafe(dir)
+func (w *Tunnel) CDRaw(dir string) error {
+	w.logger.Log(LogLevelInfo, "cd "+dir)
+	w.lastDir = filepath.Join(w.lastDir, dir)
+	// Execute the command.
+	_, err := w.node.RunCmdSync(w.lastDir, "pwd")
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-// Calls CDUnsafe and panics if there is an error.
 func (w *Tunnel) CD(dir string) {
-	err := w.CDUnsafe(dir)
+	err := w.CDRaw(dir)
 	if err != nil {
 		panic(err)
 	}
 }
 
-// Calls RunUnsafe and panics if there is an error.
+// Calls RunRaw and panics if there is an error.
 func (w *Tunnel) Run(name string, arg ...string) {
-	err := w.RunUnsafe(name, arg...)
+	err := w.RunRaw(name, arg...)
 	if err != nil {
 		panic(err)
 	}
 }
 
-// Calls RunSyncUnsafe and panics if there is an error.
+// Calls RunSyncRaw and panics if there is an error.
 func (w *Tunnel) RunSync(cmd string) []byte {
-	output, err := w.RunSyncUnsafe(cmd)
+	output, err := w.RunSyncRaw(cmd)
 	if err != nil {
 		panic(err)
 	}
@@ -82,12 +93,12 @@ func (w *Tunnel) runCore(cmdText string, runCb func() ([]byte, error)) ([]byte, 
 			w.logger.Log(LogLevelError, string(output))
 		}
 		w.logger.Log(LogLevelError, err.Error())
-	} else {
-		if len(output) > 0 {
-			w.logger.Log(LogLevelVerbose, string(output))
-		}
+		return output, err
 	}
-	return output, err
+	if len(output) > 0 {
+		w.logger.Log(LogLevelVerbose, string(output))
+	}
+	return output, nil
 }
 
 func (w *Tunnel) getCmdString(name string, arg ...string) string {

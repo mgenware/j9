@@ -3,7 +3,6 @@ package j9
 import (
 	"errors"
 	"fmt"
-	"path/filepath"
 	"time"
 
 	"golang.org/x/crypto/ssh"
@@ -14,7 +13,6 @@ type SSHNode struct {
 	config    *SSHConfig
 	sshConfig *ssh.ClientConfig
 	client    *ssh.Client
-	lastDir   string
 
 	Logger Logger
 }
@@ -55,13 +53,17 @@ func MustCreateSSHNode(config *SSHConfig) *SSHNode {
 	return node
 }
 
-func (node *SSHNode) RunUnsafe(name string, arg ...string) error {
-	return errors.New("Run is not supported in SSHNode")
+func (node *SSHNode) RunCmd(wd string, name string, arg ...string) error {
+	return errors.New("RunCmd is not supported in SSHNode")
 }
 
-func (node *SSHNode) RunSyncUnsafe(cmd string) ([]byte, error) {
+func (node *SSHNode) RunCmdSync(wd string, cmd string) ([]byte, error) {
 	return node.runCore(func(session *ssh.Session) ([]byte, error) {
-		return session.CombinedOutput(cmd)
+		if wd != "" {
+			cmd = "cd '" + wd + "' && " + cmd
+		}
+		output, err := session.CombinedOutput(cmd)
+		return output, err
 	})
 }
 
@@ -70,59 +72,23 @@ func (node *SSHNode) runCore(sessionCb func(*ssh.Session) ([]byte, error)) ([]by
 	if err != nil {
 		return nil, err
 	}
-	output, err := sessionCb(session)
-	if err != nil {
-		if len(output) > 0 {
-			node.log(LogLevelWarning, string(output))
-		}
-		node.log(LogLevelWarning, err.Error())
-		node.log(LogLevelWarning, "Reconnecting...")
-
-		// set the previous client to nil
-		if node.client != nil {
-			err = node.client.Close()
-			if err != nil {
-				node.log(LogLevelWarning, "Error closing previous client: "+err.Error())
-			}
-			node.client = nil
-		}
-		session, err = node.prepareSession()
-		if err != nil {
-			return nil, err
-		}
-
-		output, err = sessionCb(session)
-		if err != nil {
-			return output, err
-		}
-	}
-	return output, nil
-}
-
-func (node *SSHNode) CDUnsafe(dir string) error {
-	node.lastDir = filepath.Join(node.lastDir, dir)
-	if dir != "" {
-		// TODO: better handling of escaping path
-		cmd := "cd '" + dir + "'"
-		_, err := node.RunSyncUnsafe(cmd)
-		return err
-	}
-	return nil
+	return sessionCb(session)
 }
 
 func (node *SSHNode) prepareSession() (*ssh.Session, error) {
-	if node.client == nil {
-		cfg := node.config
-		addr := fmt.Sprintf("%v:%v", cfg.Host, cfg.Port)
-		node.log(LogLevelInfo, fmt.Sprintf("SSH: Connecting to %v\n", addr))
-
-		client, err := ssh.Dial("tcp", addr, node.sshConfig)
-		if err != nil {
-			return nil, err
-		}
-		node.client = client
+	if node.client != nil {
+		node.client.Close()
 	}
 
+	cfg := node.config
+	addr := fmt.Sprintf("%v:%v", cfg.Host, cfg.Port)
+	node.log(LogLevelInfo, fmt.Sprintf("SSH: Connecting to %v\n", addr))
+
+	client, err := ssh.Dial("tcp", addr, node.sshConfig)
+	if err != nil {
+		return nil, err
+	}
+	node.client = client
 	session, err := node.client.NewSession()
 	if err != nil {
 		return nil, err
