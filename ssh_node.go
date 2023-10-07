@@ -3,7 +3,8 @@ package j9
 import (
 	"errors"
 	"fmt"
-	"os"
+	"path/filepath"
+	"time"
 
 	"golang.org/x/crypto/ssh"
 )
@@ -36,6 +37,7 @@ func NewSSHNode(config *SSHConfig) (*SSHNode, error) {
 		User:            config.User,
 		Auth:            config.Auth,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		Timeout:         30 * time.Second,
 	}
 
 	return &SSHNode{
@@ -59,11 +61,7 @@ func (node *SSHNode) RunUnsafe(name string, arg ...string) error {
 
 func (node *SSHNode) RunSyncUnsafe(cmd string) ([]byte, error) {
 	return node.runCore(func(session *ssh.Session) ([]byte, error) {
-		session.Stderr = os.Stderr
-		session.Stdout = os.Stdout
-		session.Stdin = os.Stdin
-		err := session.Start(cmd)
-		return nil, err
+		return session.CombinedOutput(cmd)
 	})
 }
 
@@ -102,7 +100,7 @@ func (node *SSHNode) runCore(sessionCb func(*ssh.Session) ([]byte, error)) ([]by
 }
 
 func (node *SSHNode) CDUnsafe(dir string) error {
-	node.lastDir = dir
+	node.lastDir = filepath.Join(node.lastDir, dir)
 	if dir != "" {
 		// TODO: better handling of escaping path
 		cmd := "cd '" + dir + "'"
