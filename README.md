@@ -114,4 +114,5 @@ Use them based on your use cases.
 | ----------------------------------------------------- | --- | ------- |
 | Return stdout and stderr as a string                  | ❌  | ✅      |
 | Live process output (good for long-running processes) | ✅  | ❌      |
-| Supported in SSHNode                                  | ❌  | ✅      |
+| Supported in `LocalNode`                              | ✅  | ✅      |
+| Supported in `SSHNode`                                | ❌  | ✅      |
