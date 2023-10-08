@@ -3,7 +3,7 @@
 [![Build](https://github.com/mgenware/j9/actions/workflows/build.yml/badge.svg)](https://github.com/mgenware/j9/actions/workflows/build.yml)
 [![Lint](https://github.com/mgenware/j9/actions/workflows/lint.yml/badge.svg)](https://github.com/mgenware/j9/actions/workflows/lint.yml)
 
-Shell scripting in Go.
+Shell scripting, SSH in Go.
 
 ## Installation
 
