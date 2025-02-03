@@ -101,11 +101,18 @@ Use WSL 2.
 First, they have different function signatures:
 
 ```go
-// Run runs the given command, returns an error if the command fails.
-Run(name string, arg ...string) error
+// Runs the given command and arguments. Panics if there is an error.
+Run(name string, arg ...string)
 
-// RunSync runs the given command, returns the output and an error if the command fails.
-RunSync(cmd string) ([]byte, error)
+// Runs and given command string and returns the output.
+// Panics if there is an error.
+RunSync(cmd string) []byte
+
+// Like Run, but does not panic.
+RunRaw(name string, arg ...string) error
+
+// Like RunSync, but does not panic.
+RunSyncRaw(cmd string) ([]byte, error)
 ```
 
 Use them based on your use cases.

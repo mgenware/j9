@@ -35,19 +35,20 @@ func (w *Tunnel) LastDir() string {
 	return w.lastDir
 }
 
-// Calls `node.RunCmd`.
+// Runs the given command and arguments. Returns an error if the command fails.
 func (w *Tunnel) RunRaw(name string, arg ...string) error {
-	cmdString := w.getCmdString(name, arg...)
-	_, err := w.runCore(cmdString, func() ([]byte, error) {
+	cmdString := w.getCmdLog(name, arg...)
+	_, err := w.logAndCall(cmdString, func() ([]byte, error) {
 		err := w.node.RunCmd(w.lastDir, name, arg...)
 		return nil, err
 	})
 	return err
 }
 
-// Calls `node.RunCmdSync`.
+// Runs and given command string and returns the output.
+// Returns an error if the command fails.
 func (w *Tunnel) RunSyncRaw(cmd string) ([]byte, error) {
-	return w.runCore(cmd, func() ([]byte, error) {
+	return w.logAndCall(cmd, func() ([]byte, error) {
 		return w.node.RunCmdSync(w.lastDir, cmd)
 	})
 }
@@ -70,7 +71,7 @@ func (w *Tunnel) CD(dir string) {
 	}
 }
 
-// Calls RunRaw and panics if there is an error.
+// Runs the given command and arguments. Panics if there is an error.
 func (w *Tunnel) Run(name string, arg ...string) {
 	err := w.RunRaw(name, arg...)
 	if err != nil {
@@ -78,7 +79,8 @@ func (w *Tunnel) Run(name string, arg ...string) {
 	}
 }
 
-// Calls RunSyncRaw and panics if there is an error.
+// Runs and given command string and returns the output.
+// Panics if there is an error.
 func (w *Tunnel) RunSync(cmd string) []byte {
 	output, err := w.RunSyncRaw(cmd)
 	if err != nil {
@@ -87,8 +89,8 @@ func (w *Tunnel) RunSync(cmd string) []byte {
 	return output
 }
 
-func (w *Tunnel) runCore(cmdText string, runCb func() ([]byte, error)) ([]byte, error) {
-	w.logger.Log(LogLevelInfo, cmdText)
+func (w *Tunnel) logAndCall(cmdLog string, runCb func() ([]byte, error)) ([]byte, error) {
+	w.logger.Log(LogLevelInfo, cmdLog)
 	var output []byte
 	var err error
 	output, err = runCb()
@@ -105,7 +107,7 @@ func (w *Tunnel) runCore(cmdText string, runCb func() ([]byte, error)) ([]byte, 
 	return output, nil
 }
 
-func (w *Tunnel) getCmdString(name string, arg ...string) string {
+func (w *Tunnel) getCmdLog(name string, arg ...string) string {
 	cmd := name
 	for _, a := range arg {
 		cmd += " " + a
