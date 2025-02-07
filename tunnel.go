@@ -55,7 +55,11 @@ func (w *Tunnel) RunSyncRaw(cmd string) ([]byte, error) {
 
 func (w *Tunnel) CDRaw(dir string) error {
 	w.logger.Log(LogLevelInfo, "cd "+dir)
-	w.lastDir = filepath.Join(w.lastDir, dir)
+	if filepath.IsAbs(dir) {
+		w.lastDir = dir
+	} else {
+		w.lastDir = filepath.Join(w.lastDir, dir)
+	}
 	// Execute the command.
 	_, err := w.node.RunCmdSync(w.lastDir, "pwd")
 	if err != nil {

@@ -25,4 +25,9 @@ func TestTunnelCD(t *testing.T) {
 	assert.Equal(t, tn.LastDir(), "test_folders/a/b")
 	output = tn.RunSync("basename $(pwd)")
 	assert.Equal(t, "b\n", string(output))
+
+	tn.CD("/tmp")
+	assert.Equal(t, tn.LastDir(), "/tmp")
+	output = tn.RunSync("basename $(pwd)")
+	assert.Equal(t, "tmp\n", string(output))
 }
