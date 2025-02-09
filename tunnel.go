@@ -1,6 +1,7 @@
 package j9
 
 import (
+	"encoding/json"
 	"path/filepath"
 )
 
@@ -111,10 +112,11 @@ func (w *Tunnel) logAndCall(cmdLog string, runCb func() ([]byte, error)) ([]byte
 	return output, nil
 }
 
-func (w *Tunnel) getCmdLog(name string, arg ...string) string {
+func (w *Tunnel) getCmdLog(name string, args ...string) string {
 	cmd := name
-	for _, a := range arg {
-		cmd += " " + a
+	for _, arg := range args {
+		argJson, _ := json.Marshal(arg)
+		cmd += " " + string(argJson)
 	}
 	return cmd
 }
