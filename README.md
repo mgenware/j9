@@ -8,7 +8,7 @@ Shell scripting, SSH in Go.
 ## Installation
 
 ```sh
-go get github.com/mgenware/j9/v2
+go get github.com/mgenware/j9/v3
 ```
 
 ## Examples
@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"os/exec"
 
-	"github.com/mgenware/j9/v2"
+	"github.com/mgenware/j9/v3"
 )
 
 func main() {
@@ -34,10 +34,10 @@ func main() {
 	_, err := exec.LookPath("tree")
 	if err != nil {
 		t.Logger().Log(j9.LogLevelError, "tree is not installed")
-		t.Run("brew", "install", "tree")
+		t.Spawn(&j9.SpawnParams{Name: "brew", Args: []string{"install", "tree"}})
 	}
 	fmt.Println("tree is installed")
-	t.Run("tree", ".")
+	t.Spawn(&j9.SpawnParams{Name: "tree", Args: []string{"."}})
 }
 ```
 
@@ -64,7 +64,7 @@ tree .
 package main
 
 import (
-	"github.com/mgenware/j9/v2"
+	"github.com/mgenware/j9/v3"
 )
 
 func main() {
@@ -75,8 +75,8 @@ func main() {
 	}
 
 	t := j9.NewTunnel(j9.MustCreateSSHNode(config), j9.NewConsoleLogger())
-	t.RunSync("pwd")
-	t.RunSync("ls")
+	t.Shell("pwd")
+	t.Shell("ls")
 }
 ```
 
@@ -96,30 +96,13 @@ data
 
 Use WSL 2.
 
-## `Run` vs `RunSync`
-
-First, they have different function signatures:
-
-```go
-// Runs the given command and arguments. Panics if there is an error.
-Run(name string, arg ...string)
-
-// Runs and given command string and returns the output.
-// Panics if there is an error.
-RunSync(cmd string) []byte
-
-// Like Run, but does not panic.
-RunRaw(name string, arg ...string) error
-
-// Like RunSync, but does not panic.
-RunSyncRaw(cmd string) ([]byte, error)
-```
+## Spawn vs Shell
 
 Use them based on your use cases.
 
-|                                                       | Run | RunSync |
-| ----------------------------------------------------- | --- | ------- |
-| Return stdout and stderr as a string                  | ❌  | ✅      |
-| Live process output (good for long-running processes) | ✅  | ❌      |
-| Supported in `LocalNode`                              | ✅  | ✅      |
-| Supported in `SSHNode`                                | ❌  | ✅      |
+|                                                       | Spawn | Shell |
+| ----------------------------------------------------- | ----- | ----- |
+| Return stdout and stderr as a string                  | ❌    | ✅    |
+| Live process output (good for long-running processes) | ✅    | ❌    |
+| Supported in `LocalNode`                              | ✅    | ✅    |
+| Supported in `SSHNode`                                | ❌    | ✅    |

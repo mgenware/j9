@@ -2,10 +2,13 @@ package j9
 
 import (
 	"os"
+	"strings"
 
-	"github.com/mgenware/j9/v2/lib"
+	"github.com/mgenware/goutil/stringsx"
 	"golang.org/x/crypto/ssh"
 )
+
+const homeEnv = "$HOME"
 
 // SSHConfig is the configuration for SSHNode.
 type SSHConfig struct {
@@ -17,7 +20,7 @@ type SSHConfig struct {
 
 // Creates a new ssh.AuthMethod with the given key file.
 func NewKeyBasedAuth(keyFile string) ([]ssh.AuthMethod, error) {
-	keyBytes, err := os.ReadFile(lib.FormatPath(keyFile, true))
+	keyBytes, err := os.ReadFile(formatPath(keyFile, true))
 	if err != nil {
 		return nil, err
 	}
@@ -54,4 +57,16 @@ func MustCreateNewPwdBasedAuth(pwd string) []ssh.AuthMethod {
 		panic(err)
 	}
 	return auth
+}
+
+func formatPath(s string, evaluate bool) string {
+	if strings.HasPrefix(s, "~/") {
+		s = homeEnv + "/" + stringsx.SubStringFromStart(s, 2)
+	} else if s == "~" {
+		s = homeEnv
+	}
+	if evaluate {
+		return os.ExpandEnv(s)
+	}
+	return s
 }

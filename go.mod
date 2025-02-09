@@ -1,12 +1,12 @@
-module github.com/mgenware/j9/v2
+module github.com/mgenware/j9/v3
 
 go 1.18
 
 require (
 	github.com/fatih/color v1.18.0
-	github.com/mgenware/goutil v1.5.0
+	github.com/mgenware/goutil v1.5.1
 	github.com/stretchr/testify v1.8.0
-	golang.org/x/crypto v0.32.0
+	golang.org/x/crypto v0.33.0
 )
 
 require (
@@ -14,6 +14,6 @@ require (
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

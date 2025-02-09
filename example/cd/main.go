@@ -3,20 +3,20 @@ package main
 import (
 	"fmt"
 
-	"github.com/mgenware/j9/v2"
+	"github.com/mgenware/j9/v3"
 )
 
 func main() {
-	ln := j9.NewLocalNode()
-	lt := j9.NewTunnel(ln, j9.NewConsoleLogger())
+	t := j9.NewTunnel(j9.NewLocalNode(), j9.NewConsoleLogger())
 	fmt.Println("> Current dir")
-	lt.Run("pwd")
+
+	t.Spawn(&j9.SpawnParams{Name: "pwd"})
 
 	fmt.Println("> Parent dir")
-	lt.CD("..")
-	lt.Run("pwd")
+	t.CD("..")
+	t.Spawn(&j9.SpawnParams{Name: "pwd"})
 
 	fmt.Println("> CD example")
-	lt.CD("example")
-	lt.Run("pwd")
+	t.CD("example")
+	t.Spawn(&j9.SpawnParams{Name: "pwd"})
 }

@@ -13,21 +13,27 @@ func NewLocalNode() *LocalNode {
 	return &LocalNode{}
 }
 
-func (node *LocalNode) RunCmdSync(wd string, cmd string) ([]byte, error) {
-	c := exec.Command("bash", "-c", cmd)
-	c.Dir = wd
-	output, err := c.CombinedOutput()
-	if err != nil {
-		return output, err
+func (node *LocalNode) Spawn(params *SpawnParams) error {
+	c := exec.Command(params.Name, params.Args...)
+	if params.WorkingDir != "" {
+		c.Dir = params.WorkingDir
 	}
-	return output, nil
-}
-
-func (node *LocalNode) RunCmd(wd string, name string, arg ...string) error {
-	c := exec.Command(name, arg...)
-	c.Dir = wd
+	c.Env = params.Env
 	c.Stdin = os.Stdin
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	return c.Run()
+}
+
+func (node *LocalNode) Shell(params *ShellParams) (string, error) {
+	c := exec.Command("sh", "-c", params.Cmd)
+	if params.WorkingDir != "" {
+		c.Dir = params.WorkingDir
+	}
+	c.Env = params.Env
+	output, err := c.CombinedOutput()
+	if err != nil {
+		return string(output), err
+	}
+	return string(output), nil
 }

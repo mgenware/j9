@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os/exec"
 
-	"github.com/mgenware/j9/v2"
+	"github.com/mgenware/j9/v3"
 )
 
 func main() {
@@ -16,8 +16,8 @@ func main() {
 	_, err := exec.LookPath("tree")
 	if err != nil {
 		t.Logger().Log(j9.LogLevelError, "tree is not installed")
-		t.Run("brew", "install", "tree")
+		t.Spawn(&j9.SpawnParams{Name: "brew", Args: []string{"install", "tree"}})
 	}
 	fmt.Println("tree is installed")
-	t.Run("tree", ".")
+	t.Spawn(&j9.SpawnParams{Name: "tree", Args: []string{"."}})
 }

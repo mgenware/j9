@@ -53,24 +53,24 @@ func MustCreateSSHNode(config *SSHConfig) *SSHNode {
 	return node
 }
 
-func (node *SSHNode) RunCmd(wd string, name string, arg ...string) error {
+func (node *SSHNode) Spawn(params *SpawnParams) error {
 	return errors.New("RunCmd is not supported in SSHNode")
 }
 
-func (node *SSHNode) RunCmdSync(wd string, cmd string) ([]byte, error) {
-	return node.runCore(func(session *ssh.Session) ([]byte, error) {
-		if wd != "" {
-			cmd = "cd '" + wd + "' && " + cmd
+func (node *SSHNode) Shell(params *ShellParams) (string, error) {
+	return node.runCore(func(session *ssh.Session) (string, error) {
+		if params.WorkingDir != "" {
+			params.Cmd = "cd '" + params.WorkingDir + "' && " + params.Cmd
 		}
-		output, err := session.CombinedOutput(cmd)
-		return output, err
+		output, err := session.CombinedOutput(params.Cmd)
+		return string(output), err
 	})
 }
 
-func (node *SSHNode) runCore(sessionCb func(*ssh.Session) ([]byte, error)) ([]byte, error) {
+func (node *SSHNode) runCore(sessionCb func(*ssh.Session) (string, error)) (string, error) {
 	session, err := node.prepareSession()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	return sessionCb(session)
 }

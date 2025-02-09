@@ -1,10 +1,20 @@
 package j9
 
+type SpawnParams struct {
+	WorkingDir string
+	Name       string
+	Args       []string
+	Env        []string
+}
+
+type ShellParams struct {
+	WorkingDir string
+	Cmd        string
+	Env        []string
+}
+
 // Node is an interface for running commands in a specific environment.
 type Node interface {
-	// RunCmd runs the given command, returns an error if the command fails.
-	RunCmd(wd string, name string, arg ...string) error
-
-	// RunCmdSync runs the given command, returns the output and an error if the command fails.
-	RunCmdSync(wd string, cmd string) ([]byte, error)
+	Spawn(params *SpawnParams) error
+	Shell(params *ShellParams) (string, error)
 }

@@ -36,67 +36,61 @@ func (w *Tunnel) LastDir() string {
 	return w.lastDir
 }
 
-// Runs the given command and arguments. Returns an error if the command fails.
-func (w *Tunnel) RunRaw(name string, arg ...string) error {
-	cmdString := w.getCmdLog(name, arg...)
-	_, err := w.logAndCall(cmdString, func() ([]byte, error) {
-		err := w.node.RunCmd(w.lastDir, name, arg...)
-		return nil, err
+func (w *Tunnel) SpawnRaw(params *SpawnParams) error {
+	logString := params.Name
+	for _, arg := range params.Args {
+		argJson, _ := json.Marshal(arg)
+		logString += " " + string(argJson)
+	}
+
+	_, err := w.logAndCall(logString, func() (string, error) {
+		// Update working dir if needed.
+		if params.WorkingDir == "" {
+			params.WorkingDir = w.lastDir
+		}
+		err := w.node.Spawn(params)
+		return "", err
 	})
 	return err
 }
 
-// Runs and given command string and returns the output.
-// Returns an error if the command fails.
-func (w *Tunnel) RunSyncRaw(cmd string) ([]byte, error) {
-	return w.logAndCall(cmd, func() ([]byte, error) {
-		return w.node.RunCmdSync(w.lastDir, cmd)
+func (w *Tunnel) ShellRaw(params *ShellParams) (string, error) {
+	return w.logAndCall(params.Cmd, func() (string, error) {
+		// Update working dir if needed.
+		if params.WorkingDir == "" {
+			params.WorkingDir = w.lastDir
+		}
+		return w.node.Shell(params)
 	})
 }
 
-func (w *Tunnel) CDRaw(dir string) error {
+func (w *Tunnel) CD(dir string) {
 	w.logger.Log(LogLevelInfo, "cd "+dir)
 	if filepath.IsAbs(dir) {
 		w.lastDir = dir
 	} else {
 		w.lastDir = filepath.Join(w.lastDir, dir)
 	}
-	// Execute the command.
-	_, err := w.node.RunCmdSync(w.lastDir, "pwd")
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
-func (w *Tunnel) CD(dir string) {
-	err := w.CDRaw(dir)
+func (w *Tunnel) Spawn(params *SpawnParams) {
+	err := w.SpawnRaw(params)
 	if err != nil {
 		panic(err)
 	}
 }
 
-// Runs the given command and arguments. Panics if there is an error.
-func (w *Tunnel) Run(name string, arg ...string) {
-	err := w.RunRaw(name, arg...)
-	if err != nil {
-		panic(err)
-	}
-}
-
-// Runs and given command string and returns the output.
-// Panics if there is an error.
-func (w *Tunnel) RunSync(cmd string) []byte {
-	output, err := w.RunSyncRaw(cmd)
+func (w *Tunnel) Shell(params *ShellParams) string {
+	output, err := w.ShellRaw(params)
 	if err != nil {
 		panic(err)
 	}
 	return output
 }
 
-func (w *Tunnel) logAndCall(cmdLog string, runCb func() ([]byte, error)) ([]byte, error) {
+func (w *Tunnel) logAndCall(cmdLog string, runCb func() (string, error)) (string, error) {
 	w.logger.Log(LogLevelInfo, cmdLog)
-	var output []byte
+	var output string
 	var err error
 	output, err = runCb()
 	if err != nil {
@@ -110,13 +104,4 @@ func (w *Tunnel) logAndCall(cmdLog string, runCb func() ([]byte, error)) ([]byte
 		w.logger.Log(LogLevelVerbose, string(output))
 	}
 	return output, nil
-}
-
-func (w *Tunnel) getCmdLog(name string, args ...string) string {
-	cmd := name
-	for _, arg := range args {
-		argJson, _ := json.Marshal(arg)
-		cmd += " " + string(argJson)
-	}
-	return cmd
 }
