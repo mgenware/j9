@@ -18,7 +18,9 @@ func (node *LocalNode) Spawn(params *SpawnParams) error {
 	if params.WorkingDir != "" {
 		c.Dir = params.WorkingDir
 	}
-	c.Env = params.Env
+	if params.Env != nil {
+		c.Env = params.Env
+	}
 	c.Stdin = os.Stdin
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
@@ -30,7 +32,9 @@ func (node *LocalNode) Shell(params *ShellParams) (string, error) {
 	if params.WorkingDir != "" {
 		c.Dir = params.WorkingDir
 	}
-	c.Env = params.Env
+	if params.Env != nil {
+		c.Env = params.Env
+	}
 	output, err := c.CombinedOutput()
 	if err != nil {
 		return string(output), err
