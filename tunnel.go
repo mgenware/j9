@@ -10,7 +10,7 @@ type Tunnel struct {
 	node   Node
 	logger Logger
 
-	lastDir string
+	dir string
 }
 
 // NewTunnel creates a new tunnel with the given node and logger.
@@ -32,8 +32,8 @@ func (w *Tunnel) Logger() Logger {
 	return w.logger
 }
 
-func (w *Tunnel) LastDir() string {
-	return w.lastDir
+func (w *Tunnel) Dir() string {
+	return w.dir
 }
 
 func (w *Tunnel) SpawnRaw(params *SpawnParams) error {
@@ -46,7 +46,7 @@ func (w *Tunnel) SpawnRaw(params *SpawnParams) error {
 	_, err := w.logAndCall(logString, func() (string, error) {
 		// Update working dir if needed.
 		if params.WorkingDir == "" {
-			params.WorkingDir = w.lastDir
+			params.WorkingDir = w.dir
 		}
 		err := w.node.Spawn(params)
 		return "", err
@@ -58,7 +58,7 @@ func (w *Tunnel) ShellRaw(params *ShellParams) (string, error) {
 	return w.logAndCall(params.Cmd, func() (string, error) {
 		// Update working dir if needed.
 		if params.WorkingDir == "" {
-			params.WorkingDir = w.lastDir
+			params.WorkingDir = w.dir
 		}
 		return w.node.Shell(params)
 	})
@@ -67,9 +67,9 @@ func (w *Tunnel) ShellRaw(params *ShellParams) (string, error) {
 func (w *Tunnel) CD(dir string) {
 	w.logger.Log(LogLevelInfo, "cd "+dir)
 	if filepath.IsAbs(dir) {
-		w.lastDir = dir
+		w.dir = dir
 	} else {
-		w.lastDir = filepath.Join(w.lastDir, dir)
+		w.dir = filepath.Join(w.dir, dir)
 	}
 }
 
