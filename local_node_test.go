@@ -2,6 +2,7 @@ package j9
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -33,6 +34,12 @@ func TestLocalShellWD(t *testing.T) {
 	assert.Equal(t, "a\n", string(output))
 }
 
+func TestLocalSpawnWD(t *testing.T) {
+	mustMkdirp("test_folders/b")
+	_, wd := spawnNodeTestScript(localNode, &SpawnParams{Name: "../../test_spawn.sh", WorkingDir: "test_folders/b"})
+	assert.Equal(t, "b", wd)
+}
+
 func TestLocalSpawnCmd(t *testing.T) {
 	err := localNode.Spawn(&SpawnParams{Name: "echo", Args: []string{"abc"}})
 	assert.NoError(t, err)
@@ -52,6 +59,34 @@ func TestLocalShellEnv(t *testing.T) {
 }
 
 func TestLocalSpawnEnv(t *testing.T) {
-	err := localNode.Spawn(&SpawnParams{Name: "sh", Args: []string{"-c", "echo $MY_ENV"}, Env: []string{"MY_ENV=abc"}})
-	assert.NoError(t, err)
+	env, wd := spawnNodeTestScript(localNode, &SpawnParams{Name: "./test_spawn.sh", Env: []string{"VAR1=123"}})
+	assert.Equal(t, "123", env)
+	assert.Equal(t, "j9", wd)
+}
+
+func spawnNodeTestScript(node *LocalNode, opt *SpawnParams) (string, string) {
+	f, err := os.CreateTemp("", "j9_test_spawn")
+	if err != nil {
+		panic(err)
+	}
+	defer os.Remove(f.Name())
+
+	// Overwrite args to use the temp file.
+	opt.Args = []string{f.Name()}
+
+	err = node.Spawn(opt)
+	if err != nil {
+		panic(err)
+	}
+
+	output, err := os.ReadFile(f.Name())
+	if err != nil {
+		panic(err)
+	}
+
+	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+
+	v := strings.TrimLeft(lines[0], "V=")
+	d := strings.TrimLeft(lines[1], "D=")
+	return v, d
 }
