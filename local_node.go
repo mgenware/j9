@@ -19,7 +19,7 @@ func (node *LocalNode) Spawn(params *SpawnParams) error {
 		c.Dir = params.WorkingDir
 	}
 	if params.Env != nil {
-		c.Env = params.Env
+		c.Env = inheritEnv(params.Env)
 	}
 	c.Stdin = os.Stdin
 	c.Stdout = os.Stdout
@@ -33,11 +33,15 @@ func (node *LocalNode) Shell(params *ShellParams) (string, error) {
 		c.Dir = params.WorkingDir
 	}
 	if params.Env != nil {
-		c.Env = params.Env
+		c.Env = inheritEnv(params.Env)
 	}
 	output, err := c.CombinedOutput()
 	if err != nil {
 		return string(output), err
 	}
 	return string(output), nil
+}
+
+func inheritEnv(env []string) []string {
+	return append(os.Environ(), env...)
 }
