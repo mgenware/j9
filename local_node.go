@@ -13,7 +13,7 @@ func NewLocalNode() *LocalNode {
 	return &LocalNode{}
 }
 
-func (node *LocalNode) Spawn(params *SpawnParams) error {
+func (node *LocalNode) Spawn(params *SpawnOpt) error {
 	c := exec.Command(params.Name, params.Args...)
 	if params.WorkingDir != "" {
 		c.Dir = params.WorkingDir
@@ -27,7 +27,7 @@ func (node *LocalNode) Spawn(params *SpawnParams) error {
 	return c.Run()
 }
 
-func (node *LocalNode) Shell(params *ShellParams) (string, error) {
+func (node *LocalNode) Shell(params *ShellOpt) (string, error) {
 	c := exec.Command("sh", "-c", params.Cmd)
 	if params.WorkingDir != "" {
 		c.Dir = params.WorkingDir

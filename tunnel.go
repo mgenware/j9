@@ -36,7 +36,7 @@ func (w *Tunnel) Dir() string {
 	return w.dir
 }
 
-func (w *Tunnel) SpawnRaw(params *SpawnParams) error {
+func (w *Tunnel) SpawnRaw(params *SpawnOpt) error {
 	logString := params.Name
 	for _, arg := range params.Args {
 		argJson, _ := json.Marshal(arg)
@@ -54,7 +54,7 @@ func (w *Tunnel) SpawnRaw(params *SpawnParams) error {
 	return err
 }
 
-func (w *Tunnel) ShellRaw(params *ShellParams) (string, error) {
+func (w *Tunnel) ShellRaw(params *ShellOpt) (string, error) {
 	return w.logAndCall(params.Cmd, func() (string, error) {
 		// Update working dir if needed.
 		if params.WorkingDir == "" {
@@ -73,14 +73,14 @@ func (w *Tunnel) CD(dir string) {
 	}
 }
 
-func (w *Tunnel) Spawn(params *SpawnParams) {
+func (w *Tunnel) Spawn(params *SpawnOpt) {
 	err := w.SpawnRaw(params)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (w *Tunnel) Shell(params *ShellParams) string {
+func (w *Tunnel) Shell(params *ShellOpt) string {
 	output, err := w.ShellRaw(params)
 	if err != nil {
 		panic(err)

@@ -1,13 +1,13 @@
 package j9
 
-type SpawnParams struct {
+type SpawnOpt struct {
 	WorkingDir string
 	Name       string
 	Args       []string
 	Env        []string
 }
 
-type ShellParams struct {
+type ShellOpt struct {
 	WorkingDir string
 	Cmd        string
 	Env        []string
@@ -15,6 +15,6 @@ type ShellParams struct {
 
 // Node is an interface for running commands in a specific environment.
 type Node interface {
-	Spawn(params *SpawnParams) error
-	Shell(params *ShellParams) (string, error)
+	Spawn(params *SpawnOpt) error
+	Shell(params *ShellOpt) (string, error)
 }

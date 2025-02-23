@@ -53,11 +53,11 @@ func MustCreateSSHNode(config *SSHConfig) *SSHNode {
 	return node
 }
 
-func (node *SSHNode) Spawn(params *SpawnParams) error {
+func (node *SSHNode) Spawn(params *SpawnOpt) error {
 	return errors.New("RunCmd is not supported in SSHNode")
 }
 
-func (node *SSHNode) Shell(params *ShellParams) (string, error) {
+func (node *SSHNode) Shell(params *ShellOpt) (string, error) {
 	return node.runCore(func(session *ssh.Session) (string, error) {
 		if params.WorkingDir != "" {
 			params.Cmd = "cd '" + params.WorkingDir + "' && " + params.Cmd

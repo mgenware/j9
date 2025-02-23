@@ -21,17 +21,17 @@ func TestTunnelShellDirs(t *testing.T) {
 
 	tn.CD("test_folders/a/b/c")
 	assert.Equal(t, tn.Dir(), "test_folders/a/b/c")
-	output := tn.Shell(&ShellParams{Cmd: "basename $(pwd)"})
+	output := tn.Shell(&ShellOpt{Cmd: "basename $(pwd)"})
 	assert.Equal(t, "c\n", string(output))
 
 	tn.CD("..")
 	assert.Equal(t, tn.Dir(), "test_folders/a/b")
-	output = tn.Shell(&ShellParams{Cmd: "basename $(pwd)"})
+	output = tn.Shell(&ShellOpt{Cmd: "basename $(pwd)"})
 	assert.Equal(t, "b\n", string(output))
 
 	tn.CD("/tmp")
 	assert.Equal(t, tn.Dir(), "/tmp")
-	output = tn.Shell(&ShellParams{Cmd: "basename $(pwd)"})
+	output = tn.Shell(&ShellOpt{Cmd: "basename $(pwd)"})
 	assert.Equal(t, "tmp\n", string(output))
 }
 
@@ -44,13 +44,13 @@ func TestTunnelSpawnDirs(t *testing.T) {
 	tn.CD("test_folders/a/b/c")
 	assert.Equal(t, tn.Dir(), "test_folders/a/b/c")
 	// WD is auto set by tunnel.Spawn
-	_, d := spawnTunnelTestScript(tn, &SpawnParams{Name: "../../../../test_spawn.sh"})
+	_, d := spawnTunnelTestScript(tn, &SpawnOpt{Name: "../../../../test_spawn.sh"})
 	assert.Equal(t, "c", d)
 
 	tn.CD("..")
 	assert.Equal(t, tn.Dir(), "test_folders/a/b")
 	// WD is auto set by tunnel.Spawn
-	_, d = spawnTunnelTestScript(tn, &SpawnParams{Name: "../../../test_spawn.sh"})
+	_, d = spawnTunnelTestScript(tn, &SpawnOpt{Name: "../../../test_spawn.sh"})
 	assert.Equal(t, "b", d)
 
 	tn.CD("/tmp")
@@ -62,11 +62,11 @@ func TestTunnelSpawnDirs(t *testing.T) {
 		panic(err)
 	}
 	shPath := filepath.Join(wd, "test_spawn.sh")
-	_, d = spawnTunnelTestScript(tn, &SpawnParams{Name: shPath})
+	_, d = spawnTunnelTestScript(tn, &SpawnOpt{Name: shPath})
 	assert.Equal(t, "tmp", d)
 }
 
-func spawnTunnelTestScript(tn *Tunnel, opt *SpawnParams) (string, string) {
+func spawnTunnelTestScript(tn *Tunnel, opt *SpawnOpt) (string, string) {
 	f, err := os.CreateTemp("", "j9_test_spawn")
 	if err != nil {
 		panic(err)
@@ -92,13 +92,13 @@ func spawnTunnelTestScript(tn *Tunnel, opt *SpawnParams) (string, string) {
 
 func TestTunnelShellEnv(t *testing.T) {
 	tn := newLocalTunnel()
-	output := tn.Shell(&ShellParams{Cmd: "echo $MY_ENV", Env: []string{"MY_ENV=abc"}})
+	output := tn.Shell(&ShellOpt{Cmd: "echo $MY_ENV", Env: []string{"MY_ENV=abc"}})
 	assert.Equal(t, "abc\n", string(output))
 }
 
 func TestTunnelSpawnEnv(t *testing.T) {
 	tn := newLocalTunnel()
-	env, wd := spawnTunnelTestScript(tn, &SpawnParams{Name: "./test_spawn.sh", Env: []string{"VAR1=123"}})
+	env, wd := spawnTunnelTestScript(tn, &SpawnOpt{Name: "./test_spawn.sh", Env: []string{"VAR1=123"}})
 	assert.Equal(t, "123", env)
 	assert.Equal(t, "j9", wd)
 }
