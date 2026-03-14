@@ -14,19 +14,21 @@ func NewConsoleLogger() *ConsoleLogger {
 }
 
 func (c *ConsoleLogger) Log(level int, message string) {
-	if level == LogLevelVerbose {
+	var console func(format string, a ...interface{})
+	switch level {
+	case LogLevelError:
+		console = color.Red
+	case LogLevelWarning:
+		console = color.Yellow
+	case LogLevelInfo:
+		console = color.Cyan
+	case LogLevelSuccess:
+		console = color.Green
+	}
+
+	if console == nil {
 		fmt.Println(message)
 	} else {
-		var console func(format string, a ...interface{})
-		switch level {
-		case LogLevelError:
-			console = color.Red
-		case LogLevelWarning:
-			console = color.Yellow
-		default:
-			console = color.Cyan
-		}
-
 		console(message)
 	}
 }

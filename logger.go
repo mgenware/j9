@@ -4,6 +4,7 @@ const (
 	LogLevelError   = iota
 	LogLevelWarning = iota
 	LogLevelInfo    = iota
+	LogLevelSuccess = iota
 	LogLevelVerbose = iota
 )
 
