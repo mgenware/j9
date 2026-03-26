@@ -2,7 +2,10 @@ package j9
 
 import (
 	"encoding/json"
+	"os"
 	"path/filepath"
+
+	"github.com/fatih/color"
 )
 
 // Tunnel is a wrapper for a node that provides a logger.
@@ -76,16 +79,21 @@ func (w *Tunnel) CD(dir string) {
 func (w *Tunnel) Spawn(params *SpawnOpt) {
 	err := w.SpawnRaw(params)
 	if err != nil {
-		panic(err)
+		w.quit("[j9] Spawn", params.String(), err)
 	}
 }
 
 func (w *Tunnel) Shell(params *ShellOpt) string {
 	output, err := w.ShellRaw(params)
 	if err != nil {
-		panic(err)
+		w.quit("[j9] Shell", params.Cmd, err)
 	}
 	return output
+}
+
+func (w *Tunnel) quit(name, cmd string, err error) {
+	color.Red(name + " `" + cmd + "` failed:\n" + err.Error())
+	os.Exit(1)
 }
 
 func (w *Tunnel) logAndCall(cmdLog string, runCb func() (string, error)) (string, error) {

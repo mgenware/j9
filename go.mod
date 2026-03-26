@@ -3,7 +3,7 @@ module github.com/mgenware/j9/v3
 go 1.25.0
 
 require (
-	github.com/fatih/color v1.18.0
+	github.com/fatih/color v1.19.0
 	github.com/mgenware/goutil v1.5.1
 	github.com/stretchr/testify v1.8.0
 	golang.org/x/crypto v0.49.0
