@@ -18,7 +18,7 @@ func (node *LocalNode) Spawn(params *SpawnOpt) error {
 	if params.WorkingDir != "" {
 		c.Dir = params.WorkingDir
 	}
-	if params.Env != nil {
+	if len(params.Env) > 0 {
 		c.Env = inheritEnv(params.Env)
 	}
 	c.Stdin = os.Stdin
@@ -32,7 +32,7 @@ func (node *LocalNode) Shell(params *ShellOpt) (string, error) {
 	if params.WorkingDir != "" {
 		c.Dir = params.WorkingDir
 	}
-	if params.Env != nil {
+	if len(params.Env) > 0 {
 		c.Env = inheritEnv(params.Env)
 	}
 	output, err := c.CombinedOutput()
