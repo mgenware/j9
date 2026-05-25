@@ -46,7 +46,7 @@ func (w *Tunnel) SpawnRaw(params *SpawnOpt) error {
 		logString += " " + string(argJson)
 	}
 
-	_, err := w.logAndCall(logString, func() (string, error) {
+	_, err := w.logAndCall(logString, params.Env, func() (string, error) {
 		// Update working dir if needed.
 		if params.WorkingDir == "" {
 			params.WorkingDir = w.dir
@@ -58,7 +58,7 @@ func (w *Tunnel) SpawnRaw(params *SpawnOpt) error {
 }
 
 func (w *Tunnel) ShellRaw(params *ShellOpt) (string, error) {
-	return w.logAndCall(params.Cmd, func() (string, error) {
+	return w.logAndCall(params.Cmd, params.Env, func() (string, error) {
 		// Update working dir if needed.
 		if params.WorkingDir == "" {
 			params.WorkingDir = w.dir
@@ -96,8 +96,15 @@ func (w *Tunnel) quit(name, cmd string, err error) {
 	os.Exit(1)
 }
 
-func (w *Tunnel) logAndCall(cmdLog string, runCb func() (string, error)) (string, error) {
+func (w *Tunnel) logAndCall(cmdLog string, env []string, runCb func() (string, error)) (string, error) {
 	w.logger.Log(LogLevelInfo, cmdLog)
+	if len(env) > 0 {
+		w.logger.Log(LogLevelInfo, "🧢 ENV:")
+		for _, e := range env {
+			w.logger.Log(LogLevelInfo, e)
+		}
+	}
+
 	var output string
 	var err error
 	output, err = runCb()
