@@ -9,8 +9,69 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type recordingNode struct {
+	spawnWorkingDir string
+	shellWorkingDir string
+}
+
+func (node *recordingNode) Spawn(params *SpawnOpt) error {
+	node.spawnWorkingDir = params.WorkingDir
+	return nil
+}
+
+func (node *recordingNode) Shell(params *ShellOpt) (string, error) {
+	node.shellWorkingDir = params.WorkingDir
+	return params.WorkingDir, nil
+}
+
+type recordingLogger struct {
+	messages []string
+}
+
+func (logger *recordingLogger) Log(_ int, message string) {
+	logger.messages = append(logger.messages, message)
+}
+
 func newLocalTunnel() *Tunnel {
 	return NewTunnel(NewLocalNode(), NewConsoleLogger())
+}
+
+func TestTunnelDoesNotMutateOptions(t *testing.T) {
+	node := &recordingNode{}
+	tn := NewTunnel(node, nil)
+	spawnParams := &SpawnOpt{Name: "command"}
+	shellParams := &ShellOpt{Cmd: "command"}
+
+	tn.CD("test_folders/a")
+	assert.NoError(t, tn.SpawnRaw(spawnParams))
+	output, err := tn.ShellRaw(shellParams)
+	assert.NoError(t, err)
+	assert.Equal(t, "test_folders/a", output)
+	assert.Empty(t, spawnParams.WorkingDir)
+	assert.Empty(t, shellParams.WorkingDir)
+
+	tn.CD("..")
+	assert.NoError(t, tn.SpawnRaw(spawnParams))
+	output, err = tn.ShellRaw(shellParams)
+	assert.NoError(t, err)
+	assert.Equal(t, "test_folders", output)
+	assert.Equal(t, "test_folders", node.spawnWorkingDir)
+	assert.Equal(t, "test_folders", node.shellWorkingDir)
+	assert.Empty(t, spawnParams.WorkingDir)
+	assert.Empty(t, shellParams.WorkingDir)
+}
+
+func TestTunnelRedactsEnvironmentValues(t *testing.T) {
+	logger := &recordingLogger{}
+	tn := NewTunnel(&recordingNode{}, logger)
+
+	_, err := tn.ShellRaw(&ShellOpt{
+		Cmd: "command",
+		Env: []string{"API_TOKEN=secret-token-value"},
+	})
+	assert.NoError(t, err)
+	assert.NotContains(t, strings.Join(logger.messages, "\n"), "secret-token-value")
+	assert.Contains(t, strings.Join(logger.messages, "\n"), "values redacted")
 }
 
 func TestTunnelShellDirs(t *testing.T) {

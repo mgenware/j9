@@ -47,11 +47,11 @@ func (w *Tunnel) SpawnRaw(params *SpawnOpt) error {
 	}
 
 	_, err := w.logAndCall(logString, params.Env, func() (string, error) {
-		// Update working dir if needed.
-		if params.WorkingDir == "" {
-			params.WorkingDir = w.dir
+		spawnParams := *params
+		if spawnParams.WorkingDir == "" {
+			spawnParams.WorkingDir = w.dir
 		}
-		err := w.node.Spawn(params)
+		err := w.node.Spawn(&spawnParams)
 		return "", err
 	})
 	return err
@@ -59,11 +59,11 @@ func (w *Tunnel) SpawnRaw(params *SpawnOpt) error {
 
 func (w *Tunnel) ShellRaw(params *ShellOpt) (string, error) {
 	return w.logAndCall(params.Cmd, params.Env, func() (string, error) {
-		// Update working dir if needed.
-		if params.WorkingDir == "" {
-			params.WorkingDir = w.dir
+		shellParams := *params
+		if shellParams.WorkingDir == "" {
+			shellParams.WorkingDir = w.dir
 		}
-		return w.node.Shell(params)
+		return w.node.Shell(&shellParams)
 	})
 }
 
@@ -99,10 +99,7 @@ func (w *Tunnel) quit(name, cmd string, err error) {
 func (w *Tunnel) logAndCall(cmdLog string, env []string, runCb func() (string, error)) (string, error) {
 	w.logger.Log(LogLevelInfo, cmdLog)
 	if len(env) > 0 {
-		w.logger.Log(LogLevelInfo, "🧢 ENV:")
-		for _, e := range env {
-			w.logger.Log(LogLevelInfo, e)
-		}
+		w.logger.Log(LogLevelInfo, "🧢 ENV: values redacted")
 	}
 
 	var output string

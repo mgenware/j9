@@ -12,10 +12,11 @@ const homeEnv = "$HOME"
 
 // SSHConfig is the configuration for SSHNode.
 type SSHConfig struct {
-	Host string
-	User string
-	Port int
-	Auth []ssh.AuthMethod
+	Host            string
+	User            string
+	Port            int
+	Auth            []ssh.AuthMethod
+	HostKeyCallback ssh.HostKeyCallback
 }
 
 // Creates a new ssh.AuthMethod with the given key file.

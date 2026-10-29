@@ -60,6 +60,8 @@ tree .
 
 ### SSH with a private key
 
+SSH server host keys are verified against `~/.ssh/known_hosts` by default. Ensure the server's key has been verified and added to that file before connecting. To use a different verification policy, set `SSHConfig.HostKeyCallback`.
+
 ```go
 package main
 
